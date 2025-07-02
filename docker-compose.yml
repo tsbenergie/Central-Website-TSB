@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Service for the PostgreSQL Database
+  db:
+    image: postgres:13
+    container_name: gestionpro_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=gestionpro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Service for the FastAPI/Streamlit Application
+  app:
+    container_name: gestionpro_app
+    build: .  # Build the image from the Dockerfile in the current directory
+    command: >
+      bash -c "
+      # Wait for the database to be ready
+      # In a real production environment, use a more robust wait script
+      sleep 10 &&
+      # Run the backend API
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+      # Run the frontend Streamlit app
+      streamlit run app/frontend/main.py --server.port 8501 --server.address 0.0.0.0
+      "
+    volumes:
+      - .:/app  # Mount the current directory into the container for live code changes
+    ports:
+      - "8000:8000"  # Map FastAPI port
+      - "8501:8501"  # Map Streamlit port
+    environment:
+      - DATABASE_URL=postgresql://user:password@db/gestionpro
+      - SECRET_KEY=a-very-secret-key-that-should-be-changed
+    depends_on:
+      - db  # This service depends on the 'db' service to be started first
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
