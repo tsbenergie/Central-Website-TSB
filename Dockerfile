@@ -23,4 +23,4 @@ EXPOSE 8501
 # Define the command to run your application.
 # This will be overridden by docker-compose, but it's good practice to have it.
 # The command will start the FastAPI server.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["streamlit", "run", "app/frontend/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
